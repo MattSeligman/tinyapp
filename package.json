@@ -1,0 +1,25 @@
+{
+  "name": "tinyapp",
+  "version": "1.0.0",
+  "description": "Tinyapp is a web app that leverages Node.js, letting users create short URLs. It's much like TinyURL.com and bit.ly, but with a few minor differences.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MattSeligman/tinyapp.git"
+  },
+  "keywords": [],
+  "author": "Matt Seligman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MattSeligman/tinyapp/issues"
+  },
+  "homepage": "https://github.com/MattSeligman/tinyapp#readme",
+  "dependencies": {
+    "ejs": "^3.1.6",
+    "express": "^4.17.3",
+    "morgan": "^1.10.0"
+  }
+}
