@@ -11,8 +11,14 @@ const urlDatabase = {
 
 // Route (Homepage)
 app.get('/', (req, res) => {
-  res.send('Hello!');
+  res.send('Homepage');
 });
+
+// Route (Hello World Test - LottieFile Credit: https://lottiefiles.com/22608-earth-animation)
+app.get("/hello", (req, res) => {
+    res.send(`<html><body><h1>Hello World</h1><div><script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <lottie-player src="https://assets1.lottiefiles.com/packages/lf20_T1gagt.json"  background="transparent"  speed="1"  style="width: 100%;" autoplay></lottie-player></div></body></html>\n`);
+  });
 
 // Route (/urls.json Viewable for testing purposes)
 app.get("/urls.json", (req, res) => {
