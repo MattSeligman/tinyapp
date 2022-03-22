@@ -30,6 +30,11 @@ app.get("/urls", (req, res) => {
   res.render("pages/urls_index", templateVars);
 });
 
+app.get("/urls/:shortURL", (req, res) => {
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  res.render("pages/urls_show", templateVars);
+});
+
 // route "404" requests the urls
 app.get("*", (req, res) => {
   res.render("pages/pageNotFound_index");
