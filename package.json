@@ -4,6 +4,7 @@
   "description": "Tinyapp is a web app that leverages Node.js, letting users create short URLs. It's much like TinyURL.com and bit.ly, but with a few minor differences.",
   "main": "index.js",
   "scripts": {
+    "start": "./node_modules/.bin/nodemon -L express_server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
