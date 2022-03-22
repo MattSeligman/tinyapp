@@ -9,21 +9,31 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
-// Route (Homepage)
-app.get('/', (req, res) => {
-  res.send('Homepage');
+// set the view engine to ejs
+app.set('view engine', 'ejs');
+
+
+// Tell Express the '/public' directory files are to be considered static.
+// In templates we can now source "/css/style.css"
+// Static Files include: CSS, Images & JS
+app.use(express.static(__dirname + '/public/'));
+
+// Route "/" to pages/index.ejs template.
+app.get('/', function(req, res) {
+  res.render('pages/index');
 });
 
-// Route (Hello World Test - LottieFile Credit: https://lottiefiles.com/22608-earth-animation)
-app.get("/hello", (req, res) => {
-    res.send(`<html><body><h1>Hello World</h1><div><script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-    <lottie-player src="https://assets1.lottiefiles.com/packages/lf20_T1gagt.json"  background="transparent"  speed="1"  style="width: 100%;" autoplay></lottie-player></div></body></html>\n`);
-  });
+// Route "/urls" to pages/urls_index.ejs template
+// Also pass the templateVars so we can use the database entries on this page.
+app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase };
+  res.render("pages/urls_index", templateVars);
+});
 
-// Route (/urls.json Viewable for testing purposes)
-app.get("/urls.json", (req, res) => {
-    res.json(urlDatabase);
-  });
+// route "404" requests the urls
+app.get("*", (req, res) => {
+  res.render("pages/pageNotFound_index");
+});
 
 // Starts the Server & Listens on PORT (Console Log on success)
 app.listen(PORT, () => {
