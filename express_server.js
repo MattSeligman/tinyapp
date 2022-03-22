@@ -2,6 +2,7 @@
 const express = require('express');
 const app = express();
 const PORT = 8080; // default port 8080
+const bodyParser = require("body-parser");
 
 // Database of shortUrl : URL Redirection Path
 const urlDatabase = {
@@ -9,9 +10,30 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
+let generatedRandomString = '';
+
+const generateRandomString = ()=>{
+  
+  // reset the randomString to empty
+  generatedRandomString = ''
+
+  // generate random numbers up to 36
+  const randomNumbers = [
+    Math.ceil(Math.random() * 36), 
+    Math.ceil(Math.random() * 36), 
+    Math.ceil(Math.random() * 36), 
+    Math.ceil(Math.random() * 36), 
+    Math.ceil(Math.random() * 36), 
+    Math.ceil(Math.random() * 36)
+  ]
+
+  // convert each number to letter (using base36)
+  // add converted letter to the generated generatedRandomString.
+  randomNumbers.forEach( number=> generatedRandomString += number.toString(36) );
+}
+
 // set the view engine to ejs
 app.set('view engine', 'ejs');
-
 
 // Tell Express the '/public' directory files are to be considered static.
 // In templates we can now source "/css/style.css"
@@ -31,7 +53,14 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  res.render("pages/urls_new");
+  
+});
+
+app.post("/urls", (req, res) => {
+  generateRandomString()
+  console.log(req.body);
+  res.send(`Ok ${generatedRandomString}`);         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls/:shortURL", (req, res) => {
