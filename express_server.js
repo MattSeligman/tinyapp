@@ -57,20 +57,28 @@ app.get("/urls", (req, res) => {
   res.render("pages/urls_index", templateVars);
 });
 
-// Route "/urls/" posts the data to the urls page
-app.post("/urls", (req, res) => {
-  const templateVars = { shortURL: generateRandomString(), longURL: urlDatabase[req.params.shortURL] };
-  res.send(req); // Respond with 'Ok' (we will replace this)
-});
-
 // Route "/urls/new" sends to pages/urls_new.ejs template
 // This route shows options to add new TinyURLs
-  app.get("/urls/new", (req, res) => {
+app.get("/urls/new", (req, res) => {
   res.render("pages/urls_new");
 });
 
+// Route "/urls/" posts the data to the urls page
+app.post("/urls/", (req, res) => {
+  generateRandomString();
+
+  urlDatabase[generatedRandomString] = req.body.longURL;
+  res.redirect('/urls/')  
+});
+
+// Route "/u/:id/delete" removes the ID from 
+app.post('/urls/:id/delete', (req,res) => {
+  delete urlDatabase[req.params.id]
+  res.redirect('/urls/');
+});
+
 // Route "/urls/:shortURL" sends to pages/urls_show.ejs template passing along the templateVars object.
-// This route shows the list of existing URLs
+// This route shows the list of this shortURLs LongURL
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("pages/urls_show", templateVars);
