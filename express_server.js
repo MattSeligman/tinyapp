@@ -3,13 +3,15 @@ const express = require('express');
 const app = express();
 const PORT = 8080; // default port 8080
 
-// Middleware
+// Setup Middleware
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser')
+
+// Running Middleware
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
-
-// set the view engine to ejs templates
+app.use(cookieParser())
 app.set('view engine', 'ejs');
 
 // Database of shortUrl : URL Redirection Path
@@ -43,6 +45,7 @@ app.get('/', function(req, res) {
 // Route "/urls" sends to pages/urls_index.ejs template passing along the templateVars object.
 // This route shows a list of current TinyURLs
 app.get("/urls", (req, res) => {
+  console.log('Cookies: ', req.cookies)
   const templateVars = { urls: urlDatabase };
   res.render("pages/urls_index", templateVars);
 });
