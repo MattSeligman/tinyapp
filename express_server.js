@@ -20,14 +20,16 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
+let generatedRandomString = '';
 /**
  * Generates a Random String to be used for tinyURLs
+ * * Clears any past generatedRandomStrings
  * * Creates random numbers between 1-36. (based on the `charToAdd` value)
  * * Modifies each random number to a string using Base36
  * * Adds each new string to the `generatedRandomString`
  */
 const genRandomString = ()=>{
-  let generatedRandomString = ''
+  generatedRandomString = ''
   const randomNumbers = [];
   for (let charToAdd = 6; charToAdd > 0; charToAdd--) { randomNumbers.push( Math.ceil(Math.random() * 36) ) }
   randomNumbers.forEach( number=> generatedRandomString += number.toString(36) );
