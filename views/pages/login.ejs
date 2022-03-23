@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/head'); %>
+</head>
+<body class="container">
+
+<%- include('../partials/_header', username); %>
+
+<main>
+    <h3>Login</h3>
+    <form class="form-inline" action="/login" method="POST">
+      <label for="username">Username</label>
+      <input class="form-control" type="text" name="username" type="text" id="username" required>
+      <label for="password">Password</label>
+      <input class="form-control" name="password" type="password" id="password" min-length="8" required>
+      <button type="submit" class="btn btn-primary">Login</button>
+    </form><br>
+    <a href="/register">Register</a>
+</main>
+
+<%- include('../partials/_footer'); %>
+
+</body>
+</html>
