@@ -41,26 +41,46 @@ app.use(express.static(__dirname + '/public/'));
 
 // Route "/" sends to pages/index.ejs template.
 app.get('/', function(req, res) {
-  res.render('pages/index');
+    res.redirect("/urls");
+  // res.render('pages/index');
 });
 
 // Route "/urls" sends to pages/urls_index.ejs template passing along the templateVars object.
 // This route shows a list of current TinyURLs
 app.get("/urls", (req, res) => {
-  console.log('Cookies: ', req.cookies)
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    username: req.cookies.username,
+    urls: urlDatabase
+  };
+  console.log(req.cookies.username)
   res.render("pages/urls_index", templateVars);
 });
 
 // Route "/urls/new" sends to pages/urls_new.ejs template
 // This route shows options to add new TinyURLs
 app.get("/urls/new", (req, res) => {
-  res.render("pages/urls_new");
+  const templateVars = {
+    username: req.cookies.username,
+    urls: urlDatabase
+  };
+  res.render("pages/urls_new",templateVars);
 });
 
 // Route redirects tinyURL to its fullURL.
 app.get('/u/:id', (req,res) => {
   res.redirect(urlDatabase[req.params.id]);
+});
+
+// Route "/login" posts login details to the urls page.
+app.post('/login', function(req, res) {
+  res.set('Set-Cookie', `username=${req.body.username}; Path=/; HttpOnly`)
+  res.redirect("/urls/");
+});
+
+// Route "/login" posts login details to the urls page.
+app.post('/logout', function(req, res) {
+  res.clearCookie('username')
+  res.redirect("/urls/");
 });
 
 // Route on post runs genRandomString() and generates a LongURL based on its entry.
@@ -99,7 +119,11 @@ app.post('/urls/:shortURL', (req,res) => {
 // Route "404" sends to pages/pageNotFound.js"
 // This route shows a page not found if the route doesn't exist.
 app.get("*", (req, res) => {
-  res.render("pages/pageNotFound");
+  const templateVars = {
+    username: req.cookies.username,
+    urls: urlDatabase
+  };
+  res.render("pages/pageNotFound", templateVars);
 });
 
 // Starts the Server & Listens on PORT (console log on success)
