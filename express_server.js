@@ -18,32 +18,21 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
-let generatedRandomString = '';
-
 /**
  * Generates a Random String to be used for tinyURLs
- * * Creates 6 random numbers between 1-36
+ * * Creates random numbers between 1-36. (based on the `charToAdd` value)
  * * Modifies each random number to a string using Base36
+ * * Adds each new string to the `generatedRandomString`
  */
 const genRandomString = ()=>{
-  // reset the randomString to empty
-  generatedRandomString = ''
-
-  // generate random numbers up to 36
+  let generatedRandomString = ''
   const randomNumbers = [];
-
-  // Add randomNumbers
   for (let charToAdd = 6; charToAdd > 0; charToAdd--) { randomNumbers.push( Math.ceil(Math.random() * 36) ) }
-
-  // convert each number to letter (using base36)
-  // add converted letter to the generated generatedRandomString.
   randomNumbers.forEach( number=> generatedRandomString += number.toString(36) );
 }
 
 
-// Tell Express the '/public' directory files are to be considered static.
-// In templates we can now source "/css/style.css"
-// Static Files include: CSS, Images & JS
+// Support all static public files.
 app.use(express.static(__dirname + '/public/'));
 
 // Route "/" sends to pages/index.ejs template.
