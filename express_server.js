@@ -71,19 +71,35 @@ app.get('/u/:id', (req,res) => {
   res.redirect(urlDatabase[req.params.id]);
 });
 
-// Route "/login" posts login details to the urls page.
+// Route redirects to Login page
+app.get("/login", (req, res) => {
+  const templateVars = {
+    username: req.cookies.username,
+    urls: urlDatabase
+  };
+  res.render("pages/login",templateVars);
+});
+
+// Post Route "/login" posts login details to the urls page.
 app.post('/login', function(req, res) {
   res.set('Set-Cookie', `username=${req.body.username}; Path=/; HttpOnly`)
   res.redirect("/urls/");
 });
 
-// Route "/login" posts login details to the urls page.
+
+// Route "/logout" Logs the user out then redirects to Urls page.
+app.get("/logout", (req, res) => {
+  res.clearCookie('username')
+  res.redirect("/urls/");
+});
+
+// Post Route "/login" posts login details to the urls page.
 app.post('/logout', function(req, res) {
   res.clearCookie('username')
   res.redirect("/urls/");
 });
 
-// Route on post runs genRandomString() and generates a LongURL based on its entry.
+// Post Route on post runs genRandomString() and generates a LongURL based on its entry.
 // Redirects to /urls/ page upon completion.
 app.post("/urls/", (req, res) => {
   genRandomString();
@@ -91,13 +107,13 @@ app.post("/urls/", (req, res) => {
   res.redirect('/urls/')  
 });
 
-// Route "/u/:id/delete" removes the ID from 
+// Post Route "/u/:id/delete" removes the ID from 
 app.post('/urls/:id/edit', (req,res) => {
   urlDatabase[req.params.id] = req.body.longURL;
   res.redirect('/urls/');
 });
 
-// Route "/u/:id/delete" removes the ID from 
+// Post Route "/u/:id/delete" removes the ID from 
 app.post('/urls/:id/delete', (req,res) => {
   delete urlDatabase[req.params.id]
   res.redirect('/urls/');
@@ -110,7 +126,7 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("pages/urls_show", templateVars);
 });
 
-// Route "/urls/:shortURL" posts updated shortURL
+// Post Route "/urls/:shortURL" posts updated shortURL
 app.post('/urls/:shortURL', (req,res) => {
   urlDatabase[req.params.id] = req.body.longURL;
   res.redirect('/urls/');
