@@ -5,7 +5,7 @@
 </head>
 <body class="container">
 
-<%- include('../partials/_header', email); %>
+<%- include('../partials/_header', email, id); %>
 
 <main>
     <h3>My URLs</h3>
@@ -19,7 +19,7 @@
             <th scope="col">Delete</th>
         </tr>
         </thead>
-        <% if(email) { %>
+        <% if(email && id) { %>
         <tbody>
         <% for(let url in urls) { %>
             <tr>
@@ -40,7 +40,9 @@
         </tbody>
         <% } %>
     </table>
-    
+    <% if(!email || !id) { %>
+        <p>Please <a href="/login">Login</a> to view your Tiny URLs.</p>
+      <% } %>
 </main>
 
 <%- include('../partials/_footer'); %>

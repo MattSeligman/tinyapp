@@ -5,10 +5,11 @@
 </head>
 <body class="container">
 
-<%- include('../partials/_header', email); %>
+<%- include('../partials/_header', email, id); %>
 
 <main>
     <h3>Create TinyURL</h3>
+    <% if(email && id) { %>
       <form class="form-inline" action="/urls" method="POST">
         <div class="form-group mb-2">
           <label for="longURL">Enter a URL:</label>
@@ -16,6 +17,9 @@
           <button type="submit" class="btn btn-primary">Submit</button>
         </div>
       </form>
+      <% } else { %>
+        <p>Please <a href="/login">Login</a> to create a Tiny URL.</p>
+      <% } %>
 </main>
 
 <%- include('../partials/_footer'); %>
