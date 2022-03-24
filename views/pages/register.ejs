@@ -10,7 +10,7 @@
     <h3>Register</h3>
     <form class="form-inline" action="/register" method="POST">
       <label for="email">Email</label>
-      <input class="form-control" type="text" name="email" type="text" pattern="/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/" id="email" required>
+      <input class="form-control" type="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" name="email" id="email" required>
       <label for="password">Password</label>
       <input class="form-control" name="password" type="password" id="password" min-length="8" required>
       <button type="submit" class="btn btn-primary">Register</button>
