@@ -4,4 +4,4 @@ main { margin: 1em;}
 .login > form > label { color: #ffffff; font-weight: 500; }
 .login > form > .form-control { margin: 0 0.5em; }
 
-.username { color: #fff; font-weight: 500; margin: 0 0.7em 0 0;}
+.email { color: #fff; font-weight: 500; margin: 0 0.7em 0 0;}
