@@ -5,7 +5,7 @@
 </head>
 <body class="container">
 
-<%- include('../partials/_header', username); %>
+<%- include('../partials/_header', email); %>
 
 <main>
     <h3>My URLs</h3>
@@ -19,7 +19,7 @@
             <th scope="col">Delete</th>
         </tr>
         </thead>
-        <% if(username) { %>
+        <% if(email) { %>
         <tbody>
         <% for(let url in urls) { %>
             <tr>
