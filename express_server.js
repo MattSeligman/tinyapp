@@ -1,7 +1,7 @@
 // Imports & Port Configuration
 const express = require('express');
 const app = express();
-const PORT = 8081; // default port 8080
+const PORT = 8082; // default port 8080
 
 // Setup Middleware
 const morgan = require('morgan');
@@ -25,6 +25,11 @@ const users = {
     id: "user_2RandomID", 
     email: "user2@example.com", 
     password: "dishwasher-funk"
+  },
+ "user_yfbavv": {
+    id: "user_yfbavv", 
+    email: "test@test.com", 
+    password: "test"
   }
 }
 
@@ -36,10 +41,13 @@ const urlDatabase = {
   '9sm5xK': {
     longURL: 'http://www.google.com',
     userID: 'user_2RandomID'
+  },
+  'sgq3y6': {
+    longURL: 'http://www.test.com',
+    userID: 'user_yfbavv'
   }
 };
 
-let generatedRandomString = '';
 /**
  * Generates a Random String to be used for tinyURLs
  * * Clears any past generatedRandomStrings
@@ -48,10 +56,44 @@ let generatedRandomString = '';
  * * Adds each new string to the `generatedRandomString`
  */
 const genRandomString = ()=>{
-  generatedRandomString = ''
+  let generatedRandomString = ''
   const randomNumbers = [];
   for (let charToAdd = 6; charToAdd > 0; charToAdd--) { randomNumbers.push( Math.ceil(Math.random() * 36) ) }
   randomNumbers.forEach( number=> generatedRandomString += number.toString(36) );
+  return generatedRandomString;
+}
+
+/**
+ * The checkCookieAuth function returns a True or False for verifying the Cookie Authorization.
+ * @param {*} req pulls in data with requests
+ * @param {*} res sends data with response
+ * @returns `True` or `False`
+ */
+const checkCookieAuth = (req, res)=>{
+  
+  // Check if the cookieID matches the users Keys (same as ID)
+  const cookieIDExist = Object.keys(users).includes(req.cookies.id);
+  if (!cookieIDExist) { 
+    console.log("Cookie ID doesn't exist");
+
+    res.clearCookie('id');
+    res.clearCookie('email');
+    res.redirect("/login/");
+    return false;
+  };
+  
+  // Check if the cookieEmail matches the the users email.
+  const cookieEmailExist = req.cookies.email === users[req.cookies.id].email;
+  if (!cookieEmailExist) { 
+    console.log("Cookie Email doesn't exist"); 
+
+    res.clearCookie('id');
+    res.clearCookie('email');
+    res.redirect("/login/");
+    return false; 
+  };
+
+  return true;
 }
 
 // Support all static public files.
@@ -63,24 +105,39 @@ app.get('/', function(req, res) {
   res.redirect("/urls");
 });
 
-// Route "/urls" sends to pages/urls_index.ejs template passing along the templateVars object.
-// This route shows a list of current TinyURLs
+/**
+ * Get | Actions to show the TinyURL's within account
+ */
 app.get("/urls", (req, res) => {
+    
+  let usersUrlDatabase = {};
+  checkCookieAuth(req, res);
 
+  Object.entries(urlDatabase).forEach((urlEntry)=>{
+    let urlID = urlEntry[1].userID;    
+    if(req.cookies.id === urlID){
+      usersUrlDatabase[urlEntry[0]] = urlEntry[1];
+     }
+  });
+ 
   const templateVars = {
     id: req.cookies.id,
     email: req.cookies.email,
-    urls: urlDatabase
-  };
+    urls: usersUrlDatabase
+    
+  }
 
-  console.log("Users", users)
-  console.log("Cookie", req.cookies)
   res.render("pages/urls_index", templateVars);
 });
 
-// Route "/urls/new" sends to pages/urls_new.ejs template
-// This route shows options to add new TinyURLs
+/**
+ * Get | Actions to create a new TinyURL
+ */
 app.get("/urls/new", (req, res) => {
+
+  // verifies cookie is Accurate before continueing
+  checkCookieAuth(req, res);
+
   const templateVars = {
     id: req.cookies.id,
     email: req.cookies.email,
@@ -89,12 +146,20 @@ app.get("/urls/new", (req, res) => {
   res.render("pages/urls_new",templateVars);
 });
 
-// Route redirects tinyURL to its fullURL.
+/**
+ * Get | Redirection for ShortURL's (Public Access)
+ */
 app.get('/u/:id', (req,res) => {
-  res.redirect(urlDatabase[req.params.id]);
+  const urlID = req.params.id;
+  if(urlID === "undefined"){ res.redirect("/") }
+
+  const longURL = urlDatabase[urlID].longURL;
+  res.redirect(longURL);
 });
 
-// Route "/register" directs to registration page.
+/**
+ * GET | Actions when viewing the Register page
+ */
 app.get("/register", (req, res) => {
   const templateVars = {
     id: req.cookies.id,
@@ -105,7 +170,9 @@ app.get("/register", (req, res) => {
 });
 
 
-// Post Route "/register" directs to registration page.
+/**
+ * POST | Actions when Registering an account
+ */
 app.post("/register", (req, res) => {
 
   // check if they snuck through some how with no post
@@ -113,14 +180,12 @@ app.post("/register", (req, res) => {
 
   let submittedEmail = req.body.email;
 
-  // check if user exists.
   for(let user in users){
     let emailsMatch = users[user].email === submittedEmail;
     if (emailsMatch) { res.redirect('/login/') }
   }
 
-  // Otherwise let's build the cookie
-  genRandomString();
+  let generatedRandomString = genRandomString();
   users["user_" + generatedRandomString] = { 
     id: "user_" + generatedRandomString, 
     email: submittedEmail,
@@ -133,8 +198,11 @@ app.post("/register", (req, res) => {
 
 });
 
-// Route redirects to Login page
+/**
+ * GET | Actions when viewing the Login page.
+ */
 app.get("/login", (req, res) => {
+
   const templateVars = {
     id: req.cookies.id,
     email: req.cookies.email,
@@ -143,91 +211,124 @@ app.get("/login", (req, res) => {
   res.render("pages/login",templateVars);
 });
 
-// Post Route "/login" posts login details to the urls page.
+/**
+ * POST | Actions used when Logging In
+ */
 app.post('/login', function(req, res) {
 
   let submittedEmail = req.body.email;
   let submittedPassword = req.body.password;
 
-  // check if user exists.
   for(let user in users){
    
     let emailsMatch = users[user].email === submittedEmail;
     let passwordsMatch = users[user].password === submittedPassword;
     
-    if(emailsMatch){
-
-      if(passwordsMatch){
-        res.cookie("id", users[user].id)
-        res.cookie("email", submittedEmail)
-        res.redirect("/urls/");
-      } else {
-        res.redirect("/login/");
-      }
-    }
+    if(emailsMatch && passwordsMatch){
+      res.cookie("id", users[user].id)
+      res.cookie("email", submittedEmail)
+      res.redirect("/urls/");
+    }    
   }
 
+  res.redirect("/login/");
+});
+
+
+/**
+ * GET | Actions applied on Logout Page
+ */
+app.get("/logout", (req, res) => {
+  
+  if (checkCookieAuth(req, res)){
+    res.clearCookie('id');
+    res.clearCookie('email');
+  }
+
+  res.redirect("/urls/");
+});
+
+/**
+ * POST | Actions applied when Posting to Logout
+ */
+app.post('/logout', function(req, res) {
+
+  if (checkCookieAuth(req, res)){
+    res.clearCookie('id');
+    res.clearCookie('email');
+  }
+
+  res.redirect("/urls/");
+});
+
+/**
+ * POST | Route for Adding new Tiny URLS
+ */
+app.post("/urls/", (req, res) => {
+
+  if (checkCookieAuth(req, res)){
+
+    const generatedRandomString = genRandomString();
+    urlDatabase[generatedRandomString] = {
+      longURL: req.body.longURL,
+      userID: req.cookies.id
+    }
+  }
+  res.redirect('/urls/');  
+});
+
+/**
+ * POST | Route for Editing the URL of a Tiny URL
+ */
+app.post('/urls/:id/edit', (req,res) => {
+
+  if (checkCookieAuth(req, res)){
+    
+    urlDatabase[req.params.id] = {
+      longURL: req.body.longURL,
+      userID: req.cookies.id
+    }
+  }
+  
+  res.redirect('/urls/');
+});
+
+/**
+ * POST | Actions applied when deleting a Tiny URL
+ */
+app.post('/urls/:id/delete', (req,res) => {
+
+  if(checkCookieAuth(req, res)){
+    delete urlDatabase[req.params.id]
+  }  
+  res.redirect('/urls/');
   
 });
 
-
-// Route "/logout" Logs the user out then redirects to Urls page.
-app.get("/logout", (req, res) => {
-  res.clearCookie('id');
-  res.clearCookie('email');
-  res.redirect("/urls/");
-});
-
-// Post Route "/login" posts login details to the urls page.
-app.post('/logout', function(req, res) {
-  res.clearCookie('id');
-  res.clearCookie('email');
-  res.redirect("/urls/");
-});
-
-// Post Route on post runs genRandomString() and generates a LongURL based on its entry.
-// Redirects to /urls/ page upon completion.
-app.post("/urls/", (req, res) => {
-
-  genRandomString();
-  urlDatabase[generatedRandomString] = {
-    longURL: req.body.longURL,
-    userID: req.body.id
-  }
-  res.redirect('/urls/')  
-});
-
-// Post Route "/u/:id/edit" updates the values of the LongURL
-app.post('/urls/:id/edit', (req,res) => {
-  urlDatabase[req.params.id] = {
-    longURL: req.body.longURL,
-    userID: req.body.id
-  }
-  res.redirect('/urls/');
-});
-
-// Post Route "/u/:id/delete" removes the ID from 
-app.post('/urls/:id/delete', (req,res) => {
-  delete urlDatabase[req.params.id]
-  res.redirect('/urls/');
-});
-
-// Route "/urls/:shortURL" sends to pages/urls_show.ejs template passing along the templateVars object.
-// This route shows the list of this shortURLs LongURL
+/**
+ * GET | Data provided when viewing /urls/:shortURL
+ */
 app.get("/urls/:shortURL", (req, res) => {
+  
+  checkCookieAuth(req, res);
+
   const templateVars = { 
     id: req.cookies.id,
     email: req.cookies.email,
     shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL] 
+    longURL: urlDatabase[req.params.shortURL].longURL
   };
   res.render("pages/urls_show", templateVars);
 });
 
 // Post Route "/urls/:shortURL" posts updated shortURL
 app.post('/urls/:shortURL', (req,res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
+
+  if(checkCookieAuth(req, res)){
+    urlDatabase[req.params.id] = req.body.longURL;
+  }    
   res.redirect('/urls/');
+  
 });
 
 // Route "404" sends to pages/pageNotFound.js"
