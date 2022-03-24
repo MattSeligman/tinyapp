@@ -29,8 +29,14 @@ const users = {
 }
 
 const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  'b2xVn2': {
+    longURL: 'http://www.lighthouselabs.ca',
+    userID: 'user_RandomID'
+  },
+  '9sm5xK': {
+    longURL: 'http://www.google.com',
+    userID: 'user_2RandomID'
+  }
 };
 
 let generatedRandomString = '';
@@ -60,11 +66,13 @@ app.get('/', function(req, res) {
 // Route "/urls" sends to pages/urls_index.ejs template passing along the templateVars object.
 // This route shows a list of current TinyURLs
 app.get("/urls", (req, res) => {
+
   const templateVars = {
     id: req.cookies.id,
     email: req.cookies.email,
     urls: urlDatabase
   };
+
   console.log("Users", users)
   console.log("Cookie", req.cookies)
   res.render("pages/urls_index", templateVars);
@@ -83,7 +91,6 @@ app.get("/urls/new", (req, res) => {
 
 // Route redirects tinyURL to its fullURL.
 app.get('/u/:id', (req,res) => {
-  console.log(req.cookies.email)
   res.redirect(urlDatabase[req.params.id]);
 });
 
@@ -97,19 +104,6 @@ app.get("/register", (req, res) => {
   res.render("pages/register",templateVars);
 });
 
-
-/*
-This endpoint should 
-[x] add a new user object to the global users object. 
-[x] The user object should include the user's id, email and password
-[x] To generate a random user ID, use the same function you use to generate random IDs for URLs.
-[x] After adding the user, set a user_id cookie containing the user's newly generated ID.
-[x] Redirect the user to the /urls page.
-[x] Test that the users object is properly being appended to.
-[x] insert a console.log or debugger prior to the redirect logic to inspect what data the object contains.
-[x] Test that the user_id cookie is being set correctly upon redirection. 
-[x] You already did this sort of testing in the Cookies in Express activity. 
-*/
 
 // Post Route "/register" directs to registration page.
 app.post("/register", (req, res) => {
@@ -194,14 +188,21 @@ app.post('/logout', function(req, res) {
 // Post Route on post runs genRandomString() and generates a LongURL based on its entry.
 // Redirects to /urls/ page upon completion.
 app.post("/urls/", (req, res) => {
+
   genRandomString();
-  urlDatabase[generatedRandomString] = req.body.longURL;
+  urlDatabase[generatedRandomString] = {
+    longURL: req.body.longURL,
+    userID: req.body.id
+  }
   res.redirect('/urls/')  
 });
 
-// Post Route "/u/:id/delete" removes the ID from 
+// Post Route "/u/:id/edit" updates the values of the LongURL
 app.post('/urls/:id/edit', (req,res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
+  urlDatabase[req.params.id] = {
+    longURL: req.body.longURL,
+    userID: req.body.id
+  }
   res.redirect('/urls/');
 });
 
