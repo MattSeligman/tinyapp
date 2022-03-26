@@ -5,3 +5,9 @@ main { margin: 1em;}
 .login > form > .form-control { margin: 0 0.5em; }
 
 .email { color: #fff; font-weight: 500; margin: 0 0.7em 0 0;}
+
+.table { width: 100%; }
+
+@media screen and (min-width: 992px) {
+#urlTable { display: inline-table; }
+}

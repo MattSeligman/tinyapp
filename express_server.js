@@ -1,7 +1,7 @@
 // Imports & Port Configuration
 const express = require('express');
 const app = express();
-const PORT = 8082; // default port 8080
+const PORT = 8080; // default port 8080
 
 // Import helper functions
 const { getUserByEmail, genRandomString, checkCookieAuth } = require('./helpers.js');

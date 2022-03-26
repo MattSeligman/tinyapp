@@ -6,12 +6,12 @@
       <span class="navbar-toggler-icon"></span>
     </button>
 
+    <% if(email) { %>
     <div class="collapse navbar-collapse justify-content-between" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-item nav-link" href="/urls">My URLs</a>
-        <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-      </div>
-      <% if(email) { %>
+        <div class="navbar-nav">
+          <a class="nav-item nav-link" href="/urls">My URLs</a>
+          <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        </div>
         <div class="logout">
           <form class="form-inline" action="/logout" method="POST">
             <div class="email"><%= email %></div>
@@ -19,6 +19,7 @@
           </form>
         </div>
       <% } else { %>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
         <div class="navbar-nav">
           <a class="nav-item nav-link" href="/login">Login</a>
           <a class="nav-item nav-link" href="/register">Register</a>
