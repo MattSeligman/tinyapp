@@ -3,35 +3,43 @@ const express = require('express');
 const app = express();
 const PORT = 8082; // default port 8080
 
+// Import helper functions
+const { getUserByEmail, genRandomString, checkCookieAuth } = require('./helpers.js');
+
 // Setup Middleware
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser')
+const cookieSession = require('cookie-session');
+const bcrypt = require('bcryptjs');
 
 // Running Middleware
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser())
+app.use(cookieSession({
+  name: 'session',
+  keys:  [ "undiminishableness", "portfolio", "chetahs", "shelley", "shadowing", "chorister", "overgoads", "tubber", "kromskop", "hilloing", "seraphicalness", "sketching", "honorable", "isobathythermal", "resprinkling", "monotic", "groundwater", "labelled", "overimitate", "stob", "quercimeritrin", "dupers", "microstates", "histologic", "charlatanistic", "uluhi", "retraceable", "leiocephalous", "slipknots", "singeingly", "wiremonger", "interadditive", "upswarm", "preordering", "thyristor", "nonequalized", "sweetsop", "embolies", "backway", "tricklet", "reallegorize", "vociferation", "aftward", "expressionful", "soredial", "misevaluate", "squirearchy", "detergents"],
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
 app.set('view engine', 'ejs');
 
 // Database of shortUrl : URL Redirection Path
-const users = { 
+const users = {
   "user_RandomID": {
-    id: "user_RandomID", 
-    email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    id: "user_RandomID",
+    email: "user@example.com",
+    password: "$2a$10$cB3vhSUXJcp.4XTJgARHcOPApImsohDI1r18WvS1rg/9NqWnjcVh2" // purple-monkey-dinosaur
   },
- "user_2RandomID": {
-    id: "user_2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
+  "user_2RandomID": {
+    id: "user_2RandomID",
+    email: "user2@example.com",
+    password: "$2a$10$Mc6RMXpQJRmzmf5lXjRQKeuSa0RacelJ8NXrFOkAAq1J3hYUK8iii" // dishwasher-funk
   },
- "user_yfbavv": {
-    id: "user_yfbavv", 
-    email: "test@test.com", 
-    password: "test"
+  "user_yfbavv": {
+    id: "user_yfbavv",
+    email: "test@test.com",
+    password: "$2a$10$n0TFuJ8u2/cpbFEIajdAfuI55ja.j2sSzV8AV694zWUOkm4ulVUFe" // test
   }
-}
+};
 
 const urlDatabase = {
   'b2xVn2': {
@@ -48,86 +56,48 @@ const urlDatabase = {
   }
 };
 
-/**
- * Generates a Random String to be used for tinyURLs
- * * Clears any past generatedRandomStrings
- * * Creates random numbers between 1-36. (based on the `charToAdd` value)
- * * Modifies each random number to a string using Base36
- * * Adds each new string to the `generatedRandomString`
- */
-const genRandomString = ()=>{
-  let generatedRandomString = ''
-  const randomNumbers = [];
-  for (let charToAdd = 6; charToAdd > 0; charToAdd--) { randomNumbers.push( Math.ceil(Math.random() * 36) ) }
-  randomNumbers.forEach( number=> generatedRandomString += number.toString(36) );
-  return generatedRandomString;
-}
-
-/**
- * The checkCookieAuth function returns a True or False for verifying the Cookie Authorization.
- * @param {*} req pulls in data with requests
- * @param {*} res sends data with response
- * @returns `True` or `False`
- */
-const checkCookieAuth = (req, res)=>{
-  
-  // Check if the cookieID matches the users Keys (same as ID)
-  const cookieIDExist = Object.keys(users).includes(req.cookies.id);
-  if (!cookieIDExist) { 
-    console.log("Cookie ID doesn't exist");
-
-    res.clearCookie('id');
-    res.clearCookie('email');
-    res.redirect("/login/");
-    return false;
-  };
-  
-  // Check if the cookieEmail matches the the users email.
-  const cookieEmailExist = req.cookies.email === users[req.cookies.id].email;
-  if (!cookieEmailExist) { 
-    console.log("Cookie Email doesn't exist"); 
-
-    res.clearCookie('id');
-    res.clearCookie('email');
-    res.redirect("/login/");
-    return false; 
-  };
-
-  return true;
-}
-
 // Support all static public files.
 app.use(express.static(__dirname + '/public/'));
 
 // Route "/" sends to pages/index.ejs template.
 app.get('/', function(req, res) {
-  console.log(users)
-  res.redirect("/urls");
+  // available if we want to create a Index page in future
+  return res.redirect("/urls");
 });
 
 /**
  * Get | Actions to show the TinyURL's within account
  */
 app.get("/urls", (req, res) => {
-    
   let usersUrlDatabase = {};
-  checkCookieAuth(req, res);
 
-  Object.entries(urlDatabase).forEach((urlEntry)=>{
-    let urlID = urlEntry[1].userID;    
-    if(req.cookies.id === urlID){
-      usersUrlDatabase[urlEntry[0]] = urlEntry[1];
-     }
-  });
- 
-  const templateVars = {
-    id: req.cookies.id,
-    email: req.cookies.email,
-    urls: usersUrlDatabase
-    
+  if (req.session.user === undefined) {
+    return res.redirect("/login");
   }
 
-  res.render("pages/urls_index", templateVars);
+  let templateVars = {
+    id: req.session.user.id,
+    email:  req.session.user.email,
+    urls: usersUrlDatabase
+  };
+
+  let urlDatabaseArray = Object.entries(urlDatabase);
+
+  urlDatabaseArray.forEach((entry)=>{
+    let entryArray = Object.entries(entry)[1];
+    let userID = entryArray[1].userID;
+
+    if (req.session.user.id === userID) {
+
+      // add only the entries the user has added
+      usersUrlDatabase[entry[0]] = {
+        longURL: entry[1].longURL,
+        userID: entry[1].userID
+      };
+    }
+  });
+
+  return res.render("pages/urls_index", templateVars);
 });
 
 /**
@@ -136,11 +106,13 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
 
   // verifies cookie is Accurate before continueing
-  checkCookieAuth(req, res);
+  if (!req.session.user || req.session.user === undefined) {
+    res.redirect("/login/");
+  }
 
-  const templateVars = {
-    id: req.cookies.id,
-    email: req.cookies.email,
+  let templateVars = {
+    id: req.session.user,
+    email: req.session.user.email,
     urls: urlDatabase
   };
   res.render("pages/urls_new",templateVars);
@@ -151,50 +123,59 @@ app.get("/urls/new", (req, res) => {
  */
 app.get('/u/:id', (req,res) => {
   const urlID = req.params.id;
-  if(urlID === "undefined"){ res.redirect("/") }
+  if (urlID === "undefined") {
+    res.redirect("/");
+  }
 
   const longURL = urlDatabase[urlID].longURL;
-  res.redirect(longURL);
+  return res.redirect(longURL);
 });
 
 /**
  * GET | Actions when viewing the Register page
  */
 app.get("/register", (req, res) => {
-  const templateVars = {
-    id: req.cookies.id,
-    email: req.cookies.email,
+
+  let templateVars = {
+    id: req.body.id,
+    email: req.body.email,
     urls: urlDatabase
   };
-  res.render("pages/register",templateVars);
+  return res.render("pages/register",templateVars);
 });
 
 
 /**
- * POST | Actions when Registering an account
+ * POST | Actions when posting to the Register page
  */
 app.post("/register", (req, res) => {
 
   // check if they snuck through some how with no post
-  if(req.body.email.length === 0){ res.redirect('/urls/') }
-
+  if (req.body.email.length === 0) {
+    return res.redirect('/urls/');
+  }
+  
   let submittedEmail = req.body.email;
 
-  for(let user in users){
-    let emailsMatch = users[user].email === submittedEmail;
-    if (emailsMatch) { res.redirect('/login/') }
+  if (getUserByEmail(submittedEmail, users) !== false) {
+    return res.status(404).send('This email currently exists.');
+  
   }
 
+  const submittedPassword = req.body.password;
+  const hashedPassword = bcrypt.hashSync(submittedPassword, 10);
+
   let generatedRandomString = genRandomString();
-  users["user_" + generatedRandomString] = { 
-    id: "user_" + generatedRandomString, 
+  let generatedID = "user_" + generatedRandomString;
+  
+  users[generatedID] = {
+    id: generatedID,
     email: submittedEmail,
-    password: req.body.password
+    password: hashedPassword
   };
-      
-  res.cookie("id", "user_" + generatedRandomString);
-  res.cookie("email", submittedEmail);
-  res.redirect('/urls/')
+  
+  req.session.user = users[generatedID];
+  return res.redirect('/urls/');
 
 });
 
@@ -203,35 +184,40 @@ app.post("/register", (req, res) => {
  */
 app.get("/login", (req, res) => {
 
-  const templateVars = {
-    id: req.cookies.id,
-    email: req.cookies.email,
-    urls: urlDatabase
+  if (req.session.user) {
+    console.log("You're already logged in.");
+    return res.redirect("/urls/");
+  }
+
+  let templateVars = {
+    email: req.body.email
   };
   res.render("pages/login",templateVars);
 });
 
 /**
- * POST | Actions used when Logging In
+ * POST | Actions used when posting to login page.
  */
-app.post('/login', function(req, res) {
+app.post("/login", function(req, res) {
 
-  let submittedEmail = req.body.email;
-  let submittedPassword = req.body.password;
+  const submittedEmail = req.body.email;
+  const submittedPassword = req.body.password;
+  const locatedUser = getUserByEmail(submittedEmail, users);
+  
+  if (!locatedUser) {
+    return res.status(404).send('This email account does not exists.');
+  }
+  
+  if (locatedUser) {
+    let passwordsMatch = bcrypt.compareSync(submittedPassword, locatedUser.password);
 
-  for(let user in users){
-   
-    let emailsMatch = users[user].email === submittedEmail;
-    let passwordsMatch = users[user].password === submittedPassword;
-    
-    if(emailsMatch && passwordsMatch){
-      res.cookie("id", users[user].id)
-      res.cookie("email", submittedEmail)
-      res.redirect("/urls/");
-    }    
+    if (passwordsMatch) {
+      req.session.user = locatedUser;
+      return res.redirect("/urls/");
+    }
   }
 
-  res.redirect("/login/");
+  return res.redirect("/login/");
 });
 
 
@@ -240,12 +226,8 @@ app.post('/login', function(req, res) {
  */
 app.get("/logout", (req, res) => {
   
-  if (checkCookieAuth(req, res)){
-    res.clearCookie('id');
-    res.clearCookie('email');
-  }
-
-  res.redirect("/urls/");
+  req.session = null;
+  return res.redirect("/urls/");
 });
 
 /**
@@ -253,12 +235,8 @@ app.get("/logout", (req, res) => {
  */
 app.post('/logout', function(req, res) {
 
-  if (checkCookieAuth(req, res)){
-    res.clearCookie('id');
-    res.clearCookie('email');
-  }
-
-  res.redirect("/urls/");
+  req.session = null;
+  return res.redirect("/urls/");
 });
 
 /**
@@ -266,15 +244,16 @@ app.post('/logout', function(req, res) {
  */
 app.post("/urls/", (req, res) => {
 
-  if (checkCookieAuth(req, res)){
-
+  if (req.session) {
     const generatedRandomString = genRandomString();
     urlDatabase[generatedRandomString] = {
       longURL: req.body.longURL,
-      userID: req.cookies.id
-    }
+      userID: req.session.user.id
+    };
+    return res.redirect('/urls');
   }
-  res.redirect('/urls/');  
+
+  return res.redirect('/login');
 });
 
 /**
@@ -282,15 +261,17 @@ app.post("/urls/", (req, res) => {
  */
 app.post('/urls/:id/edit', (req,res) => {
 
-  if (checkCookieAuth(req, res)){
-    
+  if (req.session) {
+
     urlDatabase[req.params.id] = {
       longURL: req.body.longURL,
-      userID: req.cookies.id
-    }
+      userID: req.session.user.id
+    };
+
+    return res.redirect('/urls');
   }
   
-  res.redirect('/urls/');
+  return res.redirect('/login');
 });
 
 /**
@@ -298,10 +279,10 @@ app.post('/urls/:id/edit', (req,res) => {
  */
 app.post('/urls/:id/delete', (req,res) => {
 
-  if(checkCookieAuth(req, res)){
-    delete urlDatabase[req.params.id]
-  }  
-  res.redirect('/urls/');
+  if (req.session) {
+    delete urlDatabase[req.params.id];
+  }
+  return res.redirect('/urls/');
   
 });
 
@@ -310,36 +291,34 @@ app.post('/urls/:id/delete', (req,res) => {
  */
 app.get("/urls/:shortURL", (req, res) => {
   
-  checkCookieAuth(req, res);
-
-  const templateVars = { 
-    id: req.cookies.id,
-    email: req.cookies.email,
-    shortURL: req.params.shortURL, 
+  let templateVars = {
+    id: req.body.id,
+    email: req.body.email,
+    shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
   };
-  res.render("pages/urls_show", templateVars);
+  return res.render("pages/urls_show", templateVars);
 });
 
 // Post Route "/urls/:shortURL" posts updated shortURL
 app.post('/urls/:shortURL', (req,res) => {
 
-  if(checkCookieAuth(req, res)){
+  if (checkCookieAuth(req, res, users)) {
     urlDatabase[req.params.id] = req.body.longURL;
-  }    
-  res.redirect('/urls/');
+  }
+  return res.redirect('/urls/');
   
 });
 
 // Route "404" sends to pages/pageNotFound.js"
 // This route shows a page not found if the route doesn't exist.
 app.get("*", (req, res) => {
-  const templateVars = {
-    id: req.cookies.id,
-    email: req.cookies.email,
+  let templateVars = {
+    id: req.body.id,
+    email: req.body.email,
     urls: urlDatabase
   };
-  res.render("pages/pageNotFound", templateVars);
+  return res.render("pages/pageNotFound", templateVars);
 });
 
 // Starts the Server & Listens on PORT (console log on success)

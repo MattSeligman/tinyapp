@@ -5,7 +5,7 @@
 </head>
 <body class="container">
 
-<%- include('../partials/_header', email, id); %>
+<%- include('../partials/_header'); %>
 
 <main>
     <h3>Login</h3>
@@ -15,8 +15,7 @@
       <label for="password">Password</label>
       <input class="form-control" name="password" type="password" id="password" min-length="8" required>
       <button type="submit" class="btn btn-primary">Login</button>
-    </form><br>
-    <a href="/register">Register</a>
+    </form>
 </main>
 
 <%- include('../partials/_footer'); %>
