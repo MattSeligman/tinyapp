@@ -107,7 +107,7 @@ app.get("/urls/new", (req, res) => {
 
   // verifies cookie is Accurate before continueing
   if (!req.session.user || req.session.user === undefined) {
-    res.redirect("/login/");
+    return res.redirect("/login/");
   }
 
   let templateVars = {
@@ -204,8 +204,11 @@ app.post("/login", function(req, res) {
   const submittedPassword = req.body.password;
   const locatedUser = getUserByEmail(submittedEmail, users);
   
+  // Using one response so attackers can't use these details to improve attacks once determined email exists.
+  const incorrectResponse = 'This email or password is incorrect.';
+
   if (!locatedUser) {
-    return res.status(404).send('This email account does not exists.');
+    return res.status(404).send(incorrectResponse);
   }
   
   if (locatedUser) {
@@ -214,6 +217,10 @@ app.post("/login", function(req, res) {
     if (passwordsMatch) {
       req.session.user = locatedUser;
       return res.redirect("/urls/");
+    } else {
+
+      // I choose to use the same 404 message so a hacker can't target the email/password from response.
+      return res.status(404).send(incorrectResponse);
     }
   }
 
