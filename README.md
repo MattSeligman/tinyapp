@@ -9,9 +9,9 @@ Create Tiny URL's with ease along with redirect to them when sharing the link. (
 
 ## Screenshots
 
-* ![Login & Registration - Responsive](https://i.imgur.com/fHWc6B6.jpg)
-* ![My URLS - Responsive](https://i.imgur.com/7SybTDR.jpg)
-* ![Edit URLS - Responsive](https://i.imgur.com/tW9XdO0.jpg)
+* ![Login & Registration - Responsive](https://github.com/MattSeligman/tinyapp/blob/master/docs/login-and-registration.jpg)
+* ![My URLS - Responsive](https://github.com/MattSeligman/tinyapp/blob/master/docs/my-urls.jpg)
+* ![Edit URLS - Responsive](https://github.com/MattSeligman/tinyapp/blob/master/docs/edit-url.jpg)
 
 ## Purpose
 
