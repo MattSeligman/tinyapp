@@ -22,7 +22,6 @@ app.use(cookieSession({
 }));
 app.set('view engine', 'ejs');
 
-// Database of shortUrl : URL Redirection Path
 const users = {
   "user_RandomID": {
     id: "user_RandomID",
