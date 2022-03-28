@@ -1,13 +1,13 @@
-main { margin: 1em;}
-.form-control { width: 300px; margin: 1em; }
-.editURL > .form-inline { display: inline-flex; }
-.login > form > label { color: #ffffff; font-weight: 500; }
-.login > form > .form-control { margin: 0 0.5em; }
-.email { color: #fff; font-weight: 500; margin: 0 0.7em 0 0;}
-.table { width: 100%; }
-.lottiefile { width: 50%; }
-.responsive-overflow { overflow-wrap: anywhere;}
-#urlTable { display: inline-table; }
-button.btn { font-weight: 700; font-size: 17px; }
-button.btn-info, button.btn-success{ color: #232c2e;}
-.navbar-brand{ font-weight: bold;}
+main{margin:1em;}
+.form-control{width:300px;margin:1em;}
+.editURL > .form-inline{display:inline-flex;}
+.login > form > label{color:#fff;font-weight:500;}
+.email{color:#fff;font-weight:500;margin:0 .7em 0 0;}
+.table{width:100%;}
+.lottiefile{width:50%;}
+.responsive-overflow{overflow-wrap:anywhere;}
+#urlTable{display:inline-table;}
+button.btn{font-weight:700;font-size:17px;}
+button.btn-info,button.btn-success{color:#232c2e;}
+.navbar-brand{font-weight:700;}
+#email,#password{width:100%;margin:0 0 20px;}
