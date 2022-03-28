@@ -3,13 +3,8 @@ main { margin: 1em;}
 .editURL > .form-inline { display: inline-flex; }
 .login > form > label { color: #ffffff; font-weight: 500; }
 .login > form > .form-control { margin: 0 0.5em; }
-
 .email { color: #fff; font-weight: 500; margin: 0 0.7em 0 0;}
-
 .table { width: 100%; }
 .lottiefile { width: 50%; }
-
-@media screen and (min-width: 992px) {
+.responsive-overflow { overflow-wrap: anywhere;}
 #urlTable { display: inline-table; }
-
-}
