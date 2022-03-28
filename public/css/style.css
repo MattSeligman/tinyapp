@@ -9,5 +9,5 @@ main { margin: 1em;}
 .responsive-overflow { overflow-wrap: anywhere;}
 #urlTable { display: inline-table; }
 button.btn { font-weight: 700; font-size: 17px; }
-button.btn-info{ color: #232c2e;}
+button.btn-info, button.btn-success{ color: #232c2e;}
 .navbar-brand{ font-weight: bold;}
