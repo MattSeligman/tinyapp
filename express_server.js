@@ -297,9 +297,13 @@ app.post('/urls/:id/delete', (req,res) => {
  */
 app.get("/urls/:shortURL", (req, res) => {
   
+  if (req.session.user === undefined) {
+    return res.redirect("/login");
+  }
+
   let templateVars = {
-    id: req.body.id,
-    email: req.body.email,
+    id: req.session.user.id,
+    email:  req.session.user.email,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
   };
