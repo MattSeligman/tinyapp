@@ -7,7 +7,9 @@ main { margin: 1em;}
 .email { color: #fff; font-weight: 500; margin: 0 0.7em 0 0;}
 
 .table { width: 100%; }
+.lottiefile { width: 50%; }
 
 @media screen and (min-width: 992px) {
 #urlTable { display: inline-table; }
+
 }
