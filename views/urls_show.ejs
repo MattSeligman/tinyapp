@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <meta name="title" content="Edit URL - TinyApp">
+  <meta name="description" content="Edit & Update your Tiny URL with ease.">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <title>TinyApp - Edit URL</title>
+</head>
+<body class="container">
+
+<%- include('./partials/_header', email, id); %>
+
+<main>
+    <div class="card text-center">
+        <div class="card-header"></div>
+        <div class="card-body">
+          <h5 class="card-title">TinyURL for: <%= longURL %></h5>
+          <p class="card-text">Short URL: <a href="/u/<%= shortURL %>" title="<%= longURL %>" target="_blank"><%= shortURL %></a></p>
+        </div>
+      <div class="card-footer text-muted">
+
+        <div class="editURL">
+          <h3>Edit your URL</h3>
+          <form class="form-inline" action="/urls/<%= shortURL %>/edit" method="POST">
+            <label for="longURL">Enter a URL:</label>
+            <input class="form-control" type="url" name="longURL" placeholder="http://" required>
+            <button type="submit" class="btn btn-success">Update your URL</button>
+          </form>
+        </div>
+      </div>
+    </div>
+</main>
+
+<%- include('./partials/_footer'); %>
+
+</body>
+</html>

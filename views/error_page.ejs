@@ -15,15 +15,22 @@
 </head>
 <body class="container">
 
-<%- include('../partials/_header', email); %>
+<%- include('./partials/_header', email); %>
 
 <main>
-  <h3>Page Not Found</h3>
+  <h3>Woops!</h3>
+  <% if(!message){ %>
   <p>This page doesn't exist, please try returning to the <a href="/" title="Tiny Urls">homepage</a>.</p>
+  <% } %>
+
+  <% if(message){ %>
+  <p><%- message %></p>
+  <% } %>
+
   <lottie-player class="lottiefile" src="https://assets8.lottiefiles.com/packages/lf20_afwjhfb2.json"  background="transparent"  speed="1" loop  autoplay></lottie-player>
 </main>
 
-<%- include('../partials/_footer'); %>
+<%- include('./partials/_footer'); %>
 <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 </body>
 </html>
