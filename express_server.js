@@ -54,35 +54,47 @@ const urlDatabase = {
     userID: 'user_yfbavv'
   }
 };
-
 // Support all static public files.
 app.use(express.static(__dirname + '/public/'));
 
-// Route "/" sends to pages/index.ejs template.
+// Route "/" sends to ./index.ejs template.
 app.get('/', function(req, res) {
-  // available if we want to create a Index page in future
-  return res.redirect("/urls");
+
+  if (!req.session){
+    return res.redirect("/urls");
+  }
+  return res.redirect("/login");
 });
 
 /**
  * Get | Actions to show the TinyURL's within account
  */
 app.get("/urls", (req, res) => {
+ 
   let usersUrlDatabase = {};
 
   if (req.session.user === undefined) {
-    return res.redirect("/login");
+    
+    let templateVars = {
+      id: null,
+      email: null,
+      message: true 
+    };
+    
+    return res.render("./urls_index", templateVars);
   }
 
   let templateVars = {
     id: req.session.user.id,
     email:  req.session.user.email,
-    urls: usersUrlDatabase
+    urls: usersUrlDatabase,
+    message: false
   };
 
   let urlDatabaseArray = Object.entries(urlDatabase);
 
   urlDatabaseArray.forEach((entry)=>{
+
     let entryArray = Object.entries(entry)[1];
     let userID = entryArray[1].userID;
 
@@ -96,7 +108,7 @@ app.get("/urls", (req, res) => {
     }
   });
 
-  return res.render("pages/urls_index", templateVars);
+  return res.render("./urls_index", templateVars);
 });
 
 /**
@@ -114,20 +126,41 @@ app.get("/urls/new", (req, res) => {
     email: req.session.user.email,
     urls: urlDatabase
   };
-  res.render("pages/urls_new",templateVars);
+  res.render("./urls_new",templateVars);
 });
 
 /**
  * Get | Redirection for ShortURL's (Public Access)
  */
 app.get('/u/:id', (req,res) => {
+
   const urlID = req.params.id;
-  if (urlID === "undefined") {
-    res.redirect("/");
+  const urlObject = urlDatabase[urlID];
+
+  if (!urlObject) {
+
+    const resMessage = `This tinyURL doesn't exist`;
+      
+    if (!req.session) {
+      let templateVars = {
+        id: null,
+        email: null,
+        message: resMessage
+      };
+      
+      return res.render("./error_page", templateVars)
+    }
+
+      let templateVars = {
+          id: req.session.user.id,
+          email: req.session.user.email,
+          message: resMessage
+      };
+      return res.render("./error_page", templateVars)
+    
   }
 
-  const longURL = urlDatabase[urlID].longURL;
-  return res.redirect(longURL);
+  return res.redirect(urlObject.longURL);
 });
 
 /**
@@ -135,12 +168,18 @@ app.get('/u/:id', (req,res) => {
  */
 app.get("/register", (req, res) => {
 
+  if (req.session.user) {
+    return res.redirect("/urls");
+  };
+    
   let templateVars = {
     id: req.body.id,
     email: req.body.email,
     urls: urlDatabase
   };
-  return res.render("pages/register",templateVars);
+
+  return res.render("./register",templateVars);
+
 });
 
 
@@ -150,14 +189,26 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
 
   // check if they snuck through some how with no post
-  if (req.body.email.length === 0) {
-    return res.redirect('/urls/');
+  if (req.body.email.length === 0 || req.body.password.length === 0) {
+    let templateVars = {
+      id: null,
+      email: null,
+      message: `The email or password field were empty, please try again. <a href='/register/'>Register</a>`
+    };
+  
+    return res.render("./error_page",templateVars);
   }
   
   let submittedEmail = req.body.email;
 
   if (getUserByEmail(submittedEmail, users) !== false) {
-    return res.status(404).send('This email currently exists.');
+    let templateVars = {
+      id: null,
+      email: null,
+      message: `This email currently exists, please try again. <a href='/register/'>Register</a>`
+    };
+  
+    return res.render("./error_page",templateVars);
   
   }
 
@@ -183,15 +234,15 @@ app.post("/register", (req, res) => {
  */
 app.get("/login", (req, res) => {
 
-  if (req.session.user) {
-    console.log("You're already logged in.");
+  if (checkCookieAuth(req, res, users)) {
+
     return res.redirect("/urls/");
   }
 
   let templateVars = {
     email: req.body.email
   };
-  res.render("pages/login",templateVars);
+  res.render("./login",templateVars);
 });
 
 /**
@@ -207,7 +258,13 @@ app.post("/login", function(req, res) {
   const incorrectResponse = 'This email or password is incorrect.';
 
   if (!locatedUser) {
-    return res.status(404).send(incorrectResponse);
+    let templateVars = {
+      id: null,
+      email: null,
+      message: `${incorrectResponse} <a href='/login/'>Login</a>`
+    };
+  
+    return res.render("./error_page",templateVars);
   }
   
   if (locatedUser) {
@@ -250,16 +307,24 @@ app.post('/logout', function(req, res) {
  */
 app.post("/urls/", (req, res) => {
 
-  if (req.session) {
-    const generatedRandomString = genRandomString();
-    urlDatabase[generatedRandomString] = {
-      longURL: req.body.longURL,
-      userID: req.session.user.id
+  //if user is not logged in
+  if (!req.session.user) {
+    let templateVars = {
+      id: null,
+      email:  null,
+      message: "You must be logged in to create a TinyURL"
     };
-    return res.redirect('/urls');
+    return res.render("./error_page", templateVars)
   }
+  
+  const generatedRandomString = genRandomString();
+  urlDatabase[generatedRandomString] = {
+    longURL: req.body.longURL,
+    userID: req.session.user.id
+  };
 
-  return res.redirect('/login');
+  return res.redirect('/urls');
+
 });
 
 /**
@@ -285,9 +350,31 @@ app.post('/urls/:id/edit', (req,res) => {
  */
 app.post('/urls/:id/delete', (req,res) => {
 
-  if (req.session) {
-    delete urlDatabase[req.params.id];
+  const session = req.session.user;
+
+  if (!session) {
+    let templateVars = {
+      id: null,
+      email:  null,
+      message: "You must be logged in to alter a TinyURL"
+    };
+    return res.render('./error_page', templateVars);
   }
+
+  const sessionUserID = session.id
+  const databaseUserID = urlDatabase[req.params.id].userID;
+  const matchingID = (sessionUserID === databaseUserID);
+
+  if (!matchingID) {
+    let templateVars = {
+      id: session.id,
+      email:  session.email,
+      message: "You must own the tinyURL to edit it."
+    };
+    return res.render('./error_page', templateVars);
+  }
+
+  delete urlDatabase[req.params.id];
   return res.redirect('/urls/');
   
 });
@@ -297,17 +384,57 @@ app.post('/urls/:id/delete', (req,res) => {
  */
 app.get("/urls/:shortURL", (req, res) => {
   
-  if (req.session.user === undefined) {
-    return res.redirect("/login");
+  const session = req.session.user;
+  
+  if (!session) {
+    let templateVars = {
+      id: null,
+      email:  null,
+      message: "You must be logged in to edit a TinyURL"
+    };
+    return res.render("./error_page", templateVars)
+  }
+  
+  const userID = session.id;
+  const reqURL = req.params.shortURL;
+
+  const shortURLObj = urlDatabase[reqURL];
+
+  // tinyURL doesn't exist
+  if(!shortURLObj){
+    let templateVars = {
+      id: userID,
+      email:  session.email,
+      message: "The current tinyURL doesn't exist."
+    };
+    
+    return res.render("./error_page", templateVars);
   }
 
+  const shortUserID = shortURLObj.userID;
+  const matchingID = (userID === shortUserID);
+
+  // tinyURL creator/session ID doesn't match
+  if(!matchingID){
+
+    let templateVars = {
+      id: userID,
+      email:  session.email,
+      message: "The current tinyURL doesn't belong to this account."
+    };
+    
+    return res.render("./error_page", templateVars);
+  }
+  
+
   let templateVars = {
-    id: req.session.user.id,
+    id: userID,
     email:  req.session.user.email,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
   };
-  return res.render("pages/urls_show", templateVars);
+  return res.render("./urls_show", templateVars);
+
 });
 
 // Post Route "/urls/:shortURL" posts updated shortURL
@@ -316,19 +443,32 @@ app.post('/urls/:shortURL', (req,res) => {
   if (checkCookieAuth(req, res, users)) {
     urlDatabase[req.params.id] = req.body.longURL;
   }
+  
   return res.redirect('/urls/');
   
 });
 
-// Route "404" sends to pages/pageNotFound.js"
+// Route "404" sends to ./error_page.js"
 // This route shows a page not found if the route doesn't exist.
 app.get("*", (req, res) => {
+  
+  const session = req.session.user;
+  
+  if (!session) {
+    let templateVars = {
+      id: null,
+      email:  null,
+      message: false
+    };
+    return res.render("./error_page", templateVars)
+  }
+
   let templateVars = {
-    id: req.body.id,
-    email: req.body.email,
-    urls: urlDatabase
+    id: req.session.user.id,
+    email: req.session.user.email,
+    message: null
   };
-  return res.render("pages/pageNotFound", templateVars);
+  return res.render("./error_page", templateVars);
 });
 
 // Starts the Server & Listens on PORT (console log on success)
