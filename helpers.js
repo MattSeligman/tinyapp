@@ -44,21 +44,45 @@ const genRandomString = ()=>{
  * @returns `True` or `False`
  */
 const checkCookieAuth = (req, res, users)=>{
+  const bcrypt = require('bcryptjs');
 
-  const userSession = req.session.user;
-  if (!userSession) {
-    res.redirect("/login/");
-    return false;
+  const sessionExists = req.session.isPopulated;
+  const sessionChanged = req.session.isChanged;
+  
+  if(!sessionExists || sessionChanged){
+    return false; 
   }
 
-  Object.values(users).forEach((entry)=>{
+  const session = req.session;
+  const user = session.user;
+  const userID = user.id;
+  const email = user.email;
+  
+  const usersKeysArray = Object.keys(users);
 
-    if (userSession === entry.email) {
+  const authorized = usersKeysArray.map((user, index)=>{
+
+      const userIDMatch = userID === user[1].id;
+      let userIndex = null;
       
-      res.redirect("/login/");
-      return true;
-    }
+      if(userIDMatch){
+        userIndex = index;
+      }
+
+      if(userIndex){
+ 
+        const emailMatch = email === user[1].email;
+
+        if(emailMatch){
+          return true;
+        }
+
+      }
+
+    return false;
   });
+
+  return authorized;
 };
 
 module.exports = {
