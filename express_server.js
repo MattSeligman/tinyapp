@@ -141,7 +141,7 @@ app.get('/u/:id', (req,res) => {
 
     const resMessage = `This tinyURL doesn't exist`;
       
-    if (!req.session) {
+    if (!req.session.user) {
       let templateVars = {
         id: null,
         email: null,
